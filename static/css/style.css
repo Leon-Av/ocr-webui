@@ -1,0 +1,62 @@
+/* Дополнительные стили (помимо Tailwind CDN). */
+
+/* Тонкий скроллбар */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Анимированный спиннер */
+@keyframes spin { to { transform: rotate(360deg); } }
+.animate-spin { animation: spin 0.8s linear infinite; }
+
+/* Зона перетаскивания — активное состояние */
+.drop-active {
+    border-color: #818cf8 !important;
+    background-color: rgba(238, 242, 255, 0.5) !important;
+}
+
+/* Полосатый прогресс-бар */
+@keyframes stripes { from { background-position: 40px 0; } to { background-position: 0 0; } }
+.progress-stripes {
+    background-image: linear-gradient(
+        45deg, rgba(255,255,255,0.2) 25%, transparent 25%,
+        transparent 50%, rgba(255,255,255,0.2) 50%,
+        rgba(255,255,255,0.2) 75%, transparent 75%, transparent
+    );
+    background-size: 40px 40px;
+    animation: stripes 1s linear infinite;
+}
+
+/* Селект с собственной стрелкой */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.9em;
+    padding-right: 2.25rem;
+}
+
+/* Карточка выбора движка */
+.engine-card {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 2px solid #e2e8f0;
+}
+.engine-card:hover { border-color: #c7d2fe; background-color: #fafaff; }
+.engine-card.selected {
+    border-color: #4f46e5;
+    background-color: #eef2ff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+.engine-card.unavailable { opacity: 0.6; }
+
+/* Радиокарточки режима выводa */
+.mode-card { cursor: pointer; transition: all 0.15s ease; border: 2px solid #e2e8f0; }
+.mode-card:hover { border-color: #c7d2fe; }
+.mode-card.selected {
+    border-color: #4f46e5;
+    background-color: #eef2ff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}

@@ -1,0 +1,83 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Дашборд — Админка OCR{% endblock %}
+{% block nav_dashboard %}bg-slate-700 text-white{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-2xl font-bold text-slate-800 mb-6">Дашборд</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Пользователи</div>
+        <div class="text-2xl font-bold text-slate-800">{{ total_users }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Всего задач</div>
+        <div class="text-2xl font-bold text-slate-800">{{ total_jobs }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Завершено</div>
+        <div class="text-2xl font-bold text-slate-800">{{ completed_jobs }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Страниц обработано</div>
+        <div class="text-2xl font-bold text-slate-800">{{ total_pages }}</div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
+    <div class="flex items-center justify-between mb-3">
+        <div class="text-sm font-medium text-slate-600">Использование хранилища</div>
+        <div class="text-sm text-slate-500">{{ '%.1f' % storage_used_gb }} ГБ / {{ storage_limit_gb }} ГБ</div>
+    </div>
+    {% set pct = (storage_used_gb / (storage_limit_gb | float) * 100) if (storage_limit_gb | float) > 0 else 0 %}
+    <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+        <div class="h-3 rounded-full {% if pct > 90 %}bg-red-500{% elif pct > 70 %}bg-amber-500{% else %}bg-primary-600{% endif %}" style="width: {{ '%.1f' % pct }}%"></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Недавние задачи</h2>
+        {% if recent_jobs %}
+        <div class="space-y-2">
+            {% for job in recent_jobs %}
+            <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                <div class="min-w-0">
+                    <div class="text-sm font-medium text-slate-800 truncate">{{ job.engine_display }}</div>
+                    <div class="text-xs text-slate-500">{{ job.created_at | fmt_dt }} &middot; {{ job.files | length }} файл(ов)</div>
+                </div>
+                <span class="px-2 py-0.5 text-xs rounded-full flex-shrink-0 ml-2
+                    {% if job.status == 'completed' %}bg-green-100 text-green-700
+                    {% elif job.status == 'processing' %}bg-blue-100 text-blue-700
+                    {% elif job.status == 'queued' %}bg-yellow-100 text-yellow-700
+                    {% elif job.status == 'failed' %}bg-red-100 text-red-700
+                    {% else %}bg-slate-100 text-slate-500{% endif %}">{{ job.status_display }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-400 text-sm text-center py-4">Пока нет задач</p>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Новые пользователи</h2>
+        {% if recent_users %}
+        <div class="space-y-2">
+            {% for u in recent_users %}
+            <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                <div>
+                    <div class="text-sm font-medium text-slate-800">{{ u.full_name }}</div>
+                    <div class="text-xs text-slate-500">{{ u.email }}</div>
+                </div>
+                <div class="text-xs text-slate-400 flex-shrink-0">{{ u.created_at | fmt_date }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-slate-400 text-sm text-center py-4">Нет пользователей</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

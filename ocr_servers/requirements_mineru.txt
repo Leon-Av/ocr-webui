@@ -1,0 +1,26 @@
+# Зависимости сервера MinerU 2.5-Pro-1.2B (ПОЛНЫЙ pipeline, GPU).
+# Устанавливать в ОТДЕЛЬНЫЙ venv (Python 3.10-3.12, на 3.13 не работает).
+#
+# ВАЖНО: torch с CUDA ставьте ПЕРВЫМ, отдельной командой (см. install.py),
+# иначе pip вытянет CPU-only torch, и MinerU будет медленным.
+#
+#   python -m venv venv_mineru
+#   venv_mineru\Scripts\activate            (Windows)
+#   # torch с CUDA (пример для CUDA 11.8; подберите под вашу CUDA):
+#   pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu118
+#   pip install -r requirements_mineru.txt
+
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9
+Pillow>=10.0
+
+# accelerate — обязателен для загрузки VLM через device_map (на GPU).
+# Без него mineru-api падает при --enable-vlm-preload:
+#   "Using a device_map ... requires accelerate".
+accelerate>=0.30
+
+# Полный pipeline mineru (НЕ mineru-vl-utils). backend vlm-engine даёт
+# качественный разбор формул (LaTeX) и таблиц, работает на GPU.
+# torch должен быть уже установлен командой выше.
+mineru[pipeline]>=2.5

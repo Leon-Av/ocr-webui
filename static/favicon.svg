@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#4f46e5"/>
+  <g fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 7h10l4 4v14a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/>
+    <path d="M18 7v4h5"/>
+    <path d="M11.5 15h7M11.5 18h7M11.5 21h4"/>
+  </g>
+  <circle cx="22.5" cy="21.5" r="4" fill="#ffffff" stroke="none"/>
+  <text x="22.5" y="24.5" font-size="4.5" font-weight="bold" fill="#4f46e5"
+        text-anchor="middle" font-family="Arial, sans-serif">OCR</text>
+</svg>

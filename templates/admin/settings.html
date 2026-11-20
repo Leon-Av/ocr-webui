@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Настройки — Админка OCR{% endblock %}
+{% block nav_settings %}bg-slate-700 text-white{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-2xl font-bold text-slate-800 mb-6">Настройки</h1>
+
+{% if success %}
+<div class="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ success }}</div>
+{% endif %}
+
+<form method="POST" action="/admin/settings" class="space-y-6 max-w-3xl">
+    <!-- Режим авторизации -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-1">Режим доступа</h2>
+        <p class="text-sm text-slate-500 mb-4">Определяет, нужен ли пользователям вход по email и паролю.</p>
+
+        <div class="border border-slate-200 rounded-lg p-4">
+            <div class="space-y-2">
+                <label class="flex items-start gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                    <input type="radio" name="auth_required" value="true" {% if settings.auth_required == 'true' %}checked{% endif %}
+                        class="mt-1 text-primary-600 focus:ring-primary-500">
+                    <div>
+                        <div class="font-medium text-slate-800 text-sm">Требовать вход в аккаунт</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Пользователи вводят email и пароль на странице входа. Аккаунты создаёт администратор.</p>
+                    </div>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-50">
+                    <input type="radio" name="auth_required" value="false" {% if settings.auth_required != 'true' %}checked{% endif %}
+                        class="mt-1 text-primary-600 focus:ring-primary-500">
+                    <div>
+                        <div class="font-medium text-slate-800 text-sm">Открытый режим (без входа)</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Сайт открывается на <code class="bg-slate-100 px-1 rounded">/</code> сразу, без логина. Все задачи привязываются к общему гостевому аккаунту. Удобно для локального использования или интернет-экспоната.</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Движки -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-1">OCR-движки</h2>
+        <p class="text-sm text-slate-500 mb-4">URL и включение движков применяются сразу. Выбранный GPU закрепляется при следующем запуске сервисов (run_all.bat). Номер GPU — как в nvidia-smi.</p>
+
+        <!-- MinerU -->
+        <div class="border border-slate-200 rounded-lg p-4 mb-3">
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-medium text-slate-800 text-sm">MinerU 2.5-Pro-1.2B</span>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="engine_enabled_mineru" value="true" {% if settings.engine_enabled_mineru == 'true' %}checked{% endif %} class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
+                    <span class="text-sm text-slate-600">Включён</span>
+                </label>
+            </div>
+            <input type="text" name="engine_url_mineru" value="{{ settings.engine_url_mineru }}" placeholder="http://localhost:8501"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+                <span class="text-xs font-medium text-slate-500">GPU:</span>
+                <select name="engine_gpu_mineru"
+                    class="px-2 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                    <option value="auto" {% if settings.engine_gpu_mineru not in ('0', '1', '2', '3') %}selected{% endif %}>Авто (первый доступный)</option>
+                    <option value="0" {% if settings.engine_gpu_mineru == '0' %}selected{% endif %}>GPU 0</option>
+                    <option value="1" {% if settings.engine_gpu_mineru == '1' %}selected{% endif %}>GPU 1</option>
+                    <option value="2" {% if settings.engine_gpu_mineru == '2' %}selected{% endif %}>GPU 2</option>
+                    <option value="3" {% if settings.engine_gpu_mineru == '3' %}selected{% endif %}>GPU 3</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Unlimited-OCR (Baidu) -->
+        <div class="border border-slate-200 rounded-lg p-4 mb-3">
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-medium text-slate-800 text-sm">Unlimited-OCR (Baidu)</span>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="engine_enabled_unlimitedocr" value="true" {% if settings.engine_enabled_unlimitedocr == 'true' %}checked{% endif %} class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
+                    <span class="text-sm text-slate-600">Включён</span>
+                </label>
+            </div>
+            <input type="text" name="engine_url_unlimitedocr" value="{{ settings.engine_url_unlimitedocr }}" placeholder="http://localhost:8503"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+                <span class="text-xs font-medium text-slate-500">GPU:</span>
+                <select name="engine_gpu_unlimitedocr"
+                    class="px-2 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                    <option value="auto" {% if settings.engine_gpu_unlimitedocr not in ('0', '1', '2', '3') %}selected{% endif %}>Авто (первый доступный)</option>
+                    <option value="0" {% if settings.engine_gpu_unlimitedocr == '0' %}selected{% endif %}>GPU 0</option>
+                    <option value="1" {% if settings.engine_gpu_unlimitedocr == '1' %}selected{% endif %}>GPU 1</option>
+                    <option value="2" {% if settings.engine_gpu_unlimitedocr == '2' %}selected{% endif %}>GPU 2</option>
+                    <option value="3" {% if settings.engine_gpu_unlimitedocr == '3' %}selected{% endif %}>GPU 3</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- LLM (LM Studio) -->
+        <div class="border border-slate-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-medium text-slate-800 text-sm">LLM (LM Studio)</span>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="engine_enabled_llm" value="true" {% if settings.engine_enabled_llm == 'true' %}checked{% endif %} class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
+                    <span class="text-sm text-slate-600">Включён</span>
+                </label>
+            </div>
+            <input type="text" name="engine_url_llm" value="{{ settings.engine_url_llm }}" placeholder="http://localhost:1235/v1"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm mb-2">
+            <input type="text" name="engine_llm_model" value="{{ settings.engine_llm_model }}" placeholder="имя модели в LM Studio"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm">
+        </div>
+    </div>
+
+    <!-- Хранилище и очистка -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Хранилище и очистка</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Срок хранения (дней)</label>
+                <input type="number" name="retention_days" min="1" max="3650" value="{{ settings.retention_days }}"
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Лимит хранилища (ГБ)</label>
+                <input type="number" name="storage_limit_gb" min="1" value="{{ settings.storage_limit_gb }}"
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition">
+            </div>
+        </div>
+        <div class="mt-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600">
+            Использовано: {{ '%.2f' % storage_used_gb }} ГБ
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition">Сохранить настройки</button>
+    </div>
+</form>
+{% endblock %}

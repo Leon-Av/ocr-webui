@@ -1,0 +1,115 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Статистика — Админка OCR{% endblock %}
+{% block nav_statistics %}bg-slate-700 text-white{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block admin_content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">Статистика</h1>
+    <form method="POST" action="/admin/reset-stats" onsubmit="return confirm('Сбросить статистику обработки? Действие необратимо.')">
+        <button type="submit" class="px-4 py-2 bg-white hover:bg-red-50 text-red-600 text-sm font-medium rounded-lg border border-red-200 transition">Сбросить статистику</button>
+    </form>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Всего задач</div>
+        <div class="text-2xl font-bold text-slate-800">{{ total_jobs }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Страниц обработано</div>
+        <div class="text-2xl font-bold text-slate-800">{{ total_pages }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Движков активно</div>
+        <div class="text-2xl font-bold text-slate-800">{{ by_engine | length }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="text-sm text-slate-500 mb-1">Дней в выборке</div>
+        <div class="text-2xl font-bold text-slate-800">14</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Задачи по дням (14 дней)</h2>
+        <canvas id="chart-days" height="120"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Статусы задач</h2>
+        <canvas id="chart-status" height="120"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Использование по движкам</h2>
+        <canvas id="chart-engine" height="120"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Среднее время на движок, сек</h2>
+        <canvas id="chart-time" height="120"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ENGINE_NAMES = {
+    'mineru': 'MinerU 2.5', 'paddleocr-vl': 'PaddleOCR-VL', 'llm': 'LLM'
+};
+const STATUS_RU = {
+    'completed': 'Завершено', 'failed': 'Ошибка', 'processing': 'Обработка',
+    'queued': 'В очереди', 'expired': 'Удалено'
+};
+const PRIMARY = '#4f46e5';
+
+const byEngine = {{ by_engine | tojson }};
+const byStatus = {{ by_status | tojson }};
+const perDay = {{ per_day | tojson }};
+
+// По дням
+const dayLabels = Object.keys(perDay);
+const dayValues = Object.values(perDay);
+new Chart(document.getElementById('chart-days'), {
+    type: 'bar',
+    data: { labels: dayLabels, datasets: [{ label: 'Задач', data: dayValues, backgroundColor: PRIMARY, borderRadius: 4 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+
+// По статусам (doughnut)
+new Chart(document.getElementById('chart-status'), {
+    type: 'doughnut',
+    data: {
+        labels: byStatus.map(s => STATUS_RU[s.status] || s.status),
+        datasets: [{ data: byStatus.map(s => s.count),
+            backgroundColor: ['#22c55e','#ef4444','#3b82f6','#eab308','#94a3b8'] }]
+    },
+    options: { plugins: { legend: { position: 'bottom' } } }
+});
+
+// По движкам
+new Chart(document.getElementById('chart-engine'), {
+    type: 'bar',
+    data: {
+        labels: byEngine.map(e => ENGINE_NAMES[e.engine] || e.engine),
+        datasets: [{ label: 'Страниц', data: byEngine.map(e => e.pages), backgroundColor: '#0ea5e9', borderRadius: 4 }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+
+// Среднее время
+new Chart(document.getElementById('chart-time'), {
+    type: 'bar',
+    data: {
+        labels: byEngine.map(e => ENGINE_NAMES[e.engine] || e.engine),
+        datasets: [{ label: 'сек', data: byEngine.map(e => e.avg_time), backgroundColor: '#f59e0b', borderRadius: 4 }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}

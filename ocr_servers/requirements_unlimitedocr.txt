@@ -1,0 +1,28 @@
+# Зависимости сервера Unlimited-OCR (Baidu) — VLM ~3.3B, PyTorch+Transformers.
+# Устанавливать в ОТДЕЛЬНЫЙ venv (Python 3.10-3.12).
+#
+# ВАЖНО: torch с CUDA ставьте ПЕРВЫМ, отдельной командой (install.py делает это сам):
+#   pip install torch==2.13.0 torchvision --index-url https://download.pytorch.org/whl/cu126
+#   pip install -r requirements_unlimitedocr.txt
+#
+# Модель (~6.7 ГБ) скачивается с HuggingFace при первом старте сервера.
+
+# Ровно те версии, на которых тестировался Unlimited-OCR:
+transformers==4.52.1
+huggingface-hub>=0.36.0
+tokenizers>=0.21.4
+addict==2.4.0
+einops>=0.8.2
+easydict>=1.13
+
+# accelerate обязателен для .cuda()/device_map загрузки
+accelerate>=0.30
+
+# Веб-обвязка (единый контракт /ocr)
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9
+Pillow>=10.0
+
+# Для отправки картинок в модель (уверенно работает с PIL/numpy)
+numpy

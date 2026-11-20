@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ru" data-zcode-design data-variant="steel">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR Сервис — техничная палитра (тест дизайна)</title>
+<style>
+/* ============================================================
+   Техничная палитра OCR-сервиса (внутренний инструмент).
+   База: design-system.md ЕМЦТ (волосяные линии, 3 роли текста,
+   один акцент, без градиентов/теней), но характер инженерный:
+   холодные сине-серые нейтрали, утилитарный акцент, моноширинные
+   ID/числа, плотнее радиусы и таблицы.
+
+   Две темы (переключатель сверху):
+   light = steel — стальной синий на светлом (основная)
+   dark  = osc   — тёмная тема «пульта» (для дежурств/мониторов)
+   ============================================================ */
+
+/* ---- Токены: светлая тема (сталь) — базовые ---- */
+:root {
+  /* поверхности — холодные, почти не окрашенные */
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --soft: #f6f8fa;
+
+  /* линии */
+  --hairline: rgba(16, 24, 32, 0.09);
+  --hairline-strong: rgba(16, 24, 32, 0.16);
+
+  /* текст — три роли */
+  --text: #121820;
+  --text-2: #55606b;
+  --text-3: #8b959e;
+
+  /* акцент — сигнальный инженерный синий */
+  --accent: #2f6be0;
+  --accent-ink: #ffffff;
+  --accent-text: #2b5fce;
+  --accent-soft: #edf2fd;
+  --accent-border: rgba(47, 107, 224, 0.35);
+
+  /* семантика */
+  --pos: #2f9e6e;  --pos-ink: #22704e;  --pos-bg: #ecf6f1;
+  --neg: #d05a5a;  --neg-ink: #94403f;  --neg-bg: #f9eeee;
+  --warn: #b97f24; --warn-ink: #8a5c14; --warn-bg: #faf3e7;
+
+  /* радиусы — компактнее «музейных» */
+  --r-control: 7px;
+  --r-card: 9px;
+  --r-panel: 12px;
+
+  /* шрифты: гротеск + моно для технических значений */
+  --sans: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'Cascadia Code', 'JetBrains Mono', Consolas, 'SF Mono', monospace;
+}
+
+/* ---- Тёмная тема «пульт» ---- */
+[data-variant="osc"] {
+  --bg: #0e1418;
+  --surface: #141c22;
+  --soft: #1a242b;
+  --hairline: rgba(148, 180, 196, 0.12);
+  --hairline-strong: rgba(148, 180, 196, 0.22);
+  --text: #e6edf1;
+  --text-2: #93a6b1;
+  --text-3: #5e7280;
+  --accent: #35b8e8;
+  --accent-ink: #04202b;
+  --accent-text: #4fc3ee;
+  --accent-soft: rgba(53, 184, 232, 0.10);
+  --accent-border: rgba(53, 184, 232, 0.35);
+  --pos: #3fbf8a; --pos-ink: #7bdcb4; --pos-bg: rgba(63,191,138,0.12);
+  --neg: #e06c6c; --neg-ink: #f0a2a2; --neg-bg: rgba(224,108,108,0.12);
+  --warn: #d9a441; --warn-ink: #ecc888; --warn-bg: rgba(217,164,65,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 400 13px/1.5 var(--sans);
+  padding: 24px 28px 48px;
+  transition: background .15s;
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- Шапка ---------- */
+.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { width: 10px; height: 22px; background: var(--accent); border-radius: 2px; }
+.brand h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.brand .sub { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+.variants { display: flex; gap: 6px; }
+.variants button {
+  height: 30px; padding: 0 14px; border-radius: var(--r-control);
+  border: 1px solid var(--hairline-strong); background: var(--surface);
+  color: var(--text-2); font: 500 12px var(--sans); cursor: pointer;
+}
+.variants button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* ---------- Каркас ---------- */
+.grid { display: grid; grid-template-columns: 250px 1fr; gap: 16px; max-width: 1380px; }
+
+/* Сайдбар */
+.side { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-panel); padding: 14px 10px; height: fit-content; }
+.nav-sec { font-size: 11px; color: var(--text-3); padding: 8px 12px 4px; }
+.nav a {
+  display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px;
+  border-radius: var(--r-control); color: var(--text-2); text-decoration: none; font-size: 13px;
+}
+.nav a svg { width: 16px; height: 16px; stroke: var(--text-3); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.nav a.on { background: var(--accent-soft); color: var(--accent-text); font-weight: 500; }
+.nav a.on svg { stroke: var(--accent-text); }
+.nav a:hover { color: var(--text); }
+
+/* ---------- Карточки ---------- */
+.card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-card); padding: 16px 18px; }
+.card + .card { margin-top: 12px; }
+.card-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.card-sub { font-size: 12px; color: var(--text-3); margin-bottom: 14px; }
+
+/* KPI */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--r-card); padding: 14px 18px; }
+.s-label { font-size: 11px; color: var(--text-3); }
+.s-value { font: 600 26px/1.2 var(--sans); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; margin: 2px 0; }
+.s-delta { font-size: 11px; color: var(--text-3); }
+.s-delta b { color: var(--pos); font-weight: 600; }
+
+/* ---------- Чипы статусов ---------- */
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 21px; padding: 0 9px;
+        font: 500 11px var(--sans); border-radius: 5px;
+        background: var(--soft); color: var(--text-2); border: 1px solid var(--hairline); }
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); }
+.chip.pos { color: var(--pos-ink); background: var(--pos-bg); border-color: transparent; }
+.chip.pos .dot { background: var(--pos); }
+.chip.neg { color: var(--neg-ink); background: var(--neg-bg); border-color: transparent; }
+.chip.neg .dot { background: var(--neg); }
+.chip.warn { color: var(--warn-ink); background: var(--warn-bg); border-color: transparent; }
+.chip.warn .dot { background: var(--warn); }
+.chip.acc { color: var(--accent-text); background: var(--accent-soft); border-color: var(--accent-border); }
+.chip.acc .dot { background: var(--accent); }
+.chip.mono { font-family: var(--mono); font-weight: 400; }
+
+/* ---------- Таблица задач ---------- */
+.table { width: 100%; border-collapse: collapse; }
+.table th { text-align: left; font: 500 11px var(--sans); color: var(--text-3); padding: 8px 10px; border-bottom: 1px solid var(--hairline); }
+.table td { padding: 9px 10px; border-bottom: 1px solid var(--hairline); font-size: 12.5px; vertical-align: middle; }
+.table tbody tr:hover { background: var(--soft); }
+.table .num { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--text-2); }
+.file-cell { display: flex; align-items: center; gap: 8px; }
+.file-cell svg { width: 15px; height: 15px; stroke: var(--text-3); fill: none; stroke-width: 1.5; flex: none; }
+
+/* ---------- Кнопки ---------- */
+.btn { height: 32px; padding: 0 14px; border-radius: var(--r-control); font: 600 12.5px var(--sans);
+       border: 1px solid var(--hairline-strong); background: var(--surface); color: var(--text);
+       cursor: pointer; transition: background .15s, border-color .15s; }
+.btn:hover { background: var(--soft); }
+.btn-acc { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-acc:hover { background: var(--accent); filter: brightness(1.06); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-2); height: 28px; }
+.btn-sm { height: 26px; padding: 0 10px; font-size: 11.5px; }
+.btn-danger { color: var(--neg-ink); background: var(--neg-bg); border-color: transparent; }
+
+/* ---------- Поля ---------- */
+.f-select { height: 32px; padding: 0 10px; border-radius: var(--r-control);
+            border: 1px solid var(--hairline-strong); background: var(--surface);
+            color: var(--text); font: 400 12.5px var(--sans); }
+.f-label { font-size: 11.5px; color: var(--text-2); margin-bottom: 5px; }
+
+/* ---------- Прогресс ---------- */
+.pbar { height: 5px; background: var(--soft); border-radius: 3px; overflow: hidden; min-width: 90px; }
+.pbar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+
+/* ---------- Две колонки контента ---------- */
+.cols { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+.stack > * + * { margin-top: 12px; }
+
+/* Движки в сайд-карточке */
+.eng { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--hairline); }
+.eng:last-child { border-bottom: none; }
+.eng .e-name { font-size: 12.5px; color: var(--text); }
+.eng .e-meta { font-family: var(--mono); font-size: 10.5px; color: var(--text-3); margin-top: 1px; }
+
+/* Системный монитор */
+.sysrow { display: grid; grid-template-columns: 96px 1fr 46px; gap: 10px; align-items: center;
+          font-size: 12px; padding: 6px 0; }
+.sysrow .n { color: var(--text-2); }
+.sysrow .v { font-family: var(--mono); font-size: 11.5px; text-align: right; color: var(--text-2); }
+.r-bar { height: 5px; background: var(--soft); border-radius: 3px; overflow: hidden; }
+.r-bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.r-bar.warn i { background: var(--warn); }
+
+/* Адаптив: узкие экраны (мобильный просмотр/малые окна) */
+@media (max-width: 960px) {
+  body { padding: 16px 14px 40px; }
+  .top { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .variants { flex-wrap: wrap; }
+  .grid { grid-template-columns: 1fr; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .cols { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <h1>OCR Сервис</h1>
+      <div class="sub">внутренний инструмент распознавания · server-01</div>
+    </div>
+  </div>
+  <div class="variants">
+    <button class="on" onclick="setVariant('steel', this)">Светлая · сталь</button>
+    <button onclick="setVariant('osc', this)">Тёмная · пульт</button>
+  </div>
+</div>
+
+<div class="grid">
+  <!-- Сайдбар -->
+  <aside class="side nav">
+    <div class="nav-sec">Обработка</div>
+    <a href="#" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Транскрибация</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M4 7V5h16v2M9 20h6M12 4v16"/></svg>История</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Авто-исправление</a>
+    <div class="nav-sec">Система</div>
+    <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Настройки</a>
+    <a href="#"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Монитор</a>
+  </aside>
+
+  <!-- Контент -->
+  <main class="stack">
+    <!-- KPI -->
+    <div class="kpis">
+      <div class="stat"><div class="s-label">Задач за месяц</div><div class="s-value">412</div><div class="s-delta">≈ 19 в день</div></div>
+      <div class="stat"><div class="s-label">Страниц распознано</div><div class="s-value">8 240</div><div class="s-delta"><b>+12%</b> к прошлому</div></div>
+      <div class="stat"><div class="s-label">Ср. время страницы</div><div class="s-value">7.4<span style="font-size:14px"> с</span></div><div class="s-delta">MinerU, GPU 0</div></div>
+      <div class="stat"><div class="s-label">Хранилище</div><div class="s-value">38.2<span style="font-size:14px"> ГБ</span></div><div class="s-delta">лимит 60 ГБ</div></div>
+    </div>
+
+    <div class="cols">
+      <div class="stack">
+        <!-- Таблица задач -->
+        <div class="card">
+          <div class="card-title">Последние обработки</div>
+          <div class="card-sub">очередь: 1 задача · worker GPU 0</div>
+          <table class="table">
+            <thead><tr><th>Файл</th><th>Движок</th><th>Стр.</th><th>Время</th><th>Статус</th><th>Прогресс</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="file-cell"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>blanks-07.07.pdf</div></td>
+                <td class="num">unlimited-ocr</td><td class="num">4</td><td class="num">0:31</td>
+                <td><span class="chip pos"><span class="dot"></span>Завершено</span></td>
+                <td><div class="pbar"><i style="width:100%"></i></div></td>
+                <td style="text-align:right"><button class="btn btn-sm btn-ghost">ZIP</button></td>
+              </tr>
+              <tr>
+                <td><div class="file-cell"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>inventory_q3.docx</div></td>
+                <td class="num">mineru</td><td class="num">12</td><td class="num">1:44</td>
+                <td><span class="chip acc"><span class="dot"></span>Обработка</span></td>
+                <td><div class="pbar"><i style="width:62%"></i></div></td>
+                <td style="text-align:right"><button class="btn btn-sm btn-danger">Стоп</button></td>
+              </tr>
+              <tr>
+                <td><div class="file-cell"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>acts_scan.pdf</div></td>
+                <td class="num">mineru</td><td class="num">8</td><td class="num">—</td>
+                <td><span class="chip warn"><span class="dot"></span>В очереди</span></td>
+                <td><div class="pbar"><i style="width:4%"></i></div></td>
+                <td style="text-align:right"><button class="btn btn-sm btn-ghost">✕</button></td>
+              </tr>
+              <tr>
+                <td><div class="file-cell"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>contracts_11.pdf</div></td>
+                <td class="num">unlimited-ocr</td><td class="num">2</td><td class="num">0:58</td>
+                <td><span class="chip neg"><span class="dot"></span>Ошибка</span></td>
+                <td><div class="pbar"><i style="width:38%; background:var(--neg)"></i></div></td>
+                <td style="text-align:right"><button class="btn btn-sm btn-ghost">↻</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Форма загрузки -->
+        <div class="card">
+          <div class="card-title">Новая обработка</div>
+          <div class="card-sub">PDF растеризуется на сервере (200 dpi), движок получает изображения</div>
+          <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+            <div style="flex:1; min-width:220px">
+              <div class="f-label">Движок распознавания</div>
+              <select class="f-select" style="width:100%">
+                <option>MinerU 2.5-Pro-1.2B — таблицы, формулы</option>
+                <option>Unlimited-OCR (Baidu) — длинные документы</option>
+                <option>LLM (LM Studio) — картинки</option>
+              </select>
+            </div>
+            <div>
+              <div class="f-label">Вывод</div>
+              <select class="f-select"><option>Объединить</option><option>По файлам</option></select>
+            </div>
+            <button class="btn btn-acc">Загрузить файлы</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Сайд: движки + система -->
+      <div class="stack">
+        <div class="card">
+          <div class="card-title">Движки</div>
+          <div class="card-sub">пинг раз в 3 с · вкл/выкл в настройках</div>
+          <div class="eng">
+            <div><div class="e-name">MinerU 2.5-Pro</div><div class="e-meta">:8501 · GPU 0</div></div>
+            <span class="chip pos"><span class="dot"></span>ok</span>
+          </div>
+          <div class="eng">
+            <div><div class="e-name">Unlimited-OCR</div><div class="e-meta">:8503 · GPU 0</div></div>
+            <span class="chip pos"><span class="dot"></span>ok</span>
+          </div>
+          <div class="eng">
+            <div><div class="e-name">LLM (LM Studio)</div><div class="e-meta">:1235 · V100</div></div>
+            <span class="chip warn"><span class="dot"></span>loading</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Монитор</div>
+          <div class="card-sub">хост server-01 · driver 580+</div>
+          <div class="sysrow"><span class="n">VRAM GPU 0</span><div class="r-bar"><i style="width:68%"></i></div><span class="v">8.2 ГБ</span></div>
+          <div class="sysrow"><span class="n">VRAM GPU 1</span><div class="r-bar warn"><i style="width:91%"></i></div><span class="v">14.6 ГБ</span></div>
+          <div class="sysrow"><span class="n">CPU</span><div class="r-bar"><i style="width:23%"></i></div><span class="v">23%</span></div>
+          <div class="sysrow"><span class="n">RAM</span><div class="r-bar"><i style="width:41%"></i></div><span class="v">26 ГБ</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Токены варианта</div>
+          <div class="card-sub">значения меняются переключателем сверху</div>
+          <div class="sysrow"><span class="n">--accent</span><div class="r-bar"><i style="width:100%; background:var(--accent)"></i></div><span class="v mono" style="font-size:10px" id="tok-accent">#2f6be0</span></div>
+          <div class="sysrow"><span class="n">--bg</span><div class="r-bar" style="border:1px solid var(--hairline)"><i style="width:100%; background:var(--bg)"></i></div><span class="v mono" style="font-size:10px" id="tok-bg">#f2f4f7</span></div>
+          <div class="sysrow"><span class="n">--r-card</span><div style="width:26px; height:14px; border:1px solid var(--hairline-strong); border-radius:var(--r-card)"></div><span class="v mono" style="font-size:10px">9px</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const TOKENS = {
+  steel: { accent: '#2f6be0', bg: '#f2f4f7' },
+  osc:   { accent: '#35b8e8', bg: '#0e1418' },
+};
+function setVariant(name, btn) {
+  document.documentElement.setAttribute('data-variant', name);
+  document.querySelectorAll('.variants button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('tok-accent').textContent = TOKENS[name].accent;
+  document.getElementById('tok-bg').textContent = TOKENS[name].bg;
+}
+</script>
+</body>
+</html>

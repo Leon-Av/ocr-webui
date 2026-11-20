@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Обработка — OCR Сервис{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50">
+    <!-- Навигация -->
+    <nav class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3h7l4 4v14a1 1 0 01-1 1H9a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3v5h5M11 12h6M11 15h6M11 18h4"/>
+                    </svg>
+                </div>
+                <span class="font-semibold text-slate-800">OCR Сервис</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/history" class="text-slate-600 hover:text-primary-600 text-sm font-medium transition">История</a>
+                {% if not open_mode %}
+                <a href="/profile" class="text-slate-600 hover:text-primary-600 text-sm font-medium transition">Профиль</a>
+                <span class="text-sm text-slate-600">{{ user.first_name }} {{ user.last_name }}</span>
+                <a href="/logout" class="text-sm text-slate-500 hover:text-red-500 transition">Выйти</a>
+                {% else %}
+                <span class="text-sm text-slate-400">открытый режим</span>
+                <a href="/admin/login" class="text-sm text-slate-400 hover:text-primary-600 transition">Админка</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Загрузка файлов -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Загрузка файлов</h2>
+
+            <div id="drop-zone"
+                class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition">
+                <svg class="w-12 h-12 mx-auto text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <p class="text-slate-600 mb-1">Перетащите файлы сюда или <span class="text-primary-600 font-medium">выберите файлы</span></p>
+                <p class="text-sm text-slate-400">Изображения: PNG, JPG, GIF, WebP, BMP, TIFF &middot; Документы: PDF</p>
+                <input type="file" id="file-input" multiple accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,.pdf" class="hidden">
+            </div>
+
+            <div id="file-list" class="hidden mt-4 space-y-2"></div>
+
+            <!-- Выбор движка -->
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-slate-700 mb-2">OCR-движок</label>
+                {% if engines %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {% for eng in engines %}
+                    <label class="engine-card {% if not eng.available %}unavailable{% endif %} rounded-xl p-4 flex items-start gap-3"
+                           data-code="{{ eng.code }}" onclick="selectEngine('{{ eng.code }}', this)">
+                        <input type="radio" name="engine" value="{{ eng.code }}" class="mt-1 text-primary-600 focus:ring-primary-500 engine-radio" {% if not eng.available %}disabled{% endif %}>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-slate-800 text-sm">{{ eng.name }}</span>
+                                {% if eng.available %}
+                                <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">доступен</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-500" title="Сервер движка не отвечает. Запустите соответствующий скрипт из ocr_servers/.">оффлайн</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">
+                                {% if eng.code == 'mineru' %}Высококачественный разбор документов (таблицы, формулы).
+                                {% elif eng.code == 'unlimited-ocr' %}VLM Baidu (3.3B): длинные документы, таблицы, свежая модель.
+                                {% elif eng.code == 'llm' %}Локальная LLM в LM Studio (понимает картинки).
+                                {% endif %}
+                            </p>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+                    Все движки отключены. Обратитесь к администратору.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Режим вывода -->
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-slate-700 mb-2">Как объединить результаты</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <label class="mode-card rounded-xl p-4 flex items-start gap-3" onclick="selectMode('combined', this)">
+                        <input type="radio" name="output_mode" value="combined" class="mt-1 text-primary-600 focus:ring-primary-500 mode-radio" checked>
+                        <div>
+                            <div class="font-medium text-slate-800 text-sm">Объединить всё</div>
+                            <p class="text-xs text-slate-500 mt-1">Один .docx и один .txt со всеми файлами по порядку.</p>
+                        </div>
+                    </label>
+                    <label class="mode-card rounded-xl p-4 flex items-start gap-3" onclick="selectMode('per_file', this)">
+                        <input type="radio" name="output_mode" value="per_file" class="mt-1 text-primary-600 focus:ring-primary-500 mode-radio">
+                        <div>
+                            <div class="font-medium text-slate-800 text-sm">По файлам</div>
+                            <p class="text-xs text-slate-500 mt-1">Каждый файл — отдельная пара .docx/.txt.</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <button id="process-btn" onclick="startProcessing()" disabled
+                class="mt-6 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition">
+                Обработать
+            </button>
+        </div>
+
+        <!-- Статус обработки -->
+        <div id="processing-section" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Обработка</h2>
+            <div id="processing-jobs" class="space-y-3"></div>
+            <div id="processing-progress" class="mt-4 hidden">
+                <div class="flex items-center justify-between text-sm text-slate-600 mb-1">
+                    <span id="progress-message">Обработка...</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div id="progress-bar" class="bg-primary-600 h-2 rounded-full transition-all" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Последние задачи -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-slate-800">Последние обработки</h2>
+                <a href="/history" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Вся история →</a>
+            </div>
+
+            {% if jobs %}
+            <div class="space-y-3">
+                {% for item in jobs %}
+                {% set job = item.job %}
+                {% set expiry = item.expiry %}
+                <div class="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <span class="font-medium text-slate-800">{{ job.engine_display }}</span>
+                                <span class="px-2 py-0.5 text-xs rounded-full
+                                    {% if job.status == 'completed' %}bg-green-100 text-green-700
+                                    {% elif job.status == 'processing' %}bg-blue-100 text-blue-700
+                                    {% elif job.status == 'queued' %}bg-yellow-100 text-yellow-700
+                                    {% elif job.status == 'failed' %}bg-red-100 text-red-700
+                                    {% elif job.status == 'expired' %}bg-slate-100 text-slate-500
+                                    {% endif %}">
+                                    {{ job.status_display }}
+                                </span>
+                                <span class="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600">{{ job.output_mode_display }}</span>
+                            </div>
+                            <div class="text-sm text-slate-500">
+                                {{ job.created_at | fmt_dt }}
+                                &middot; {{ job.files | length }} файл(ов)
+                                {% if job.total_pages %} &middot; {{ job.total_pages }} стр.{% endif %}
+                                {% if job.processing_time %} &middot; {{ job.processing_time_display }}{% endif %}
+                            </div>
+                            <div class="text-xs text-slate-400 mt-1 truncate">
+                                {% for f in job.files %}{{ f.original_filename }}{% if not loop.last %}, {% endif %}{% endfor %}
+                            </div>
+                            {% if expiry.is_warning %}
+                            <div class="mt-1 text-xs text-amber-600">Файлы будут удалены через {{ expiry.days_remaining }} дн.</div>
+                            {% endif %}
+                            {% if job.status == 'failed' and job.error_message %}
+                            <div class="mt-1 text-xs text-red-500">{{ job.error_message }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center gap-2 ml-4 flex-shrink-0">
+                            {% if job.status == 'completed' %}
+                            <a href="/download/{{ job.id }}/docx" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition">DOCX</a>
+                            <a href="/download/{{ job.id }}/txt" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition">TXT</a>
+                            <a href="/download-all/{{ job.id }}" class="px-2.5 py-1 text-xs bg-primary-100 hover:bg-primary-200 text-primary-700 rounded transition font-medium">ZIP</a>
+                            {% elif job.status in ('queued', 'processing') %}
+                            <button onclick="cancelJob({{ job.id }})" class="px-2.5 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded transition">Отменить</button>
+                            {% endif %}
+                            <button onclick="deleteJob({{ job.id }})" class="px-2.5 py-1 text-xs bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded transition" title="Удалить">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-slate-400 text-center py-8">Пока нет обработанных файлов. Загрузите изображения или PDF и нажмите «Обработать».</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const fileList = document.getElementById('file-list');
+const processBtn = document.getElementById('process-btn');
+let selectedFiles = [];
+
+// === Drop zone ===
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drop-active'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-active'));
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drop-active');
+    addFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => addFiles(fileInput.files));
+
+function addFiles(files) {
+    for (let f of files) {
+        if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
+            selectedFiles.push(f);
+        }
+    }
+    renderFileList();
+    updateProcessBtn();
+}
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderFileList();
+    updateProcessBtn();
+}
+function renderFileList() {
+    if (selectedFiles.length === 0) { fileList.classList.add('hidden'); return; }
+    fileList.classList.remove('hidden');
+    fileList.innerHTML = selectedFiles.map((f, i) => `
+        <div class="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="text-sm text-slate-700 truncate">${f.name}</span>
+                <span class="text-xs text-slate-400 flex-shrink-0">(${formatFileSize(f.size)})</span>
+            </div>
+            <button onclick="removeFile(${i})" class="text-slate-400 hover:text-red-500 transition flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>`).join('');
+}
+
+// === Engine / mode selection ===
+function selectEngine(code, el) {
+    if (el.classList.contains('unavailable')) return;
+    document.querySelectorAll('.engine-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input[type=radio]').checked = true;
+    updateProcessBtn();
+}
+function selectMode(mode, el) {
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input[type=radio]').checked = true;
+}
+
+function getSelectedEngine() {
+    const r = document.querySelector('input[name="engine"]:checked');
+    return r ? r.value : null;
+}
+function getSelectedMode() {
+    const r = document.querySelector('input[name="output_mode"]:checked');
+    return r ? r.value : 'combined';
+}
+function updateProcessBtn() {
+    const hasEngine = !!getSelectedEngine();
+    processBtn.disabled = selectedFiles.length === 0 || !hasEngine;
+}
+
+// Первичная подсветка выбранных по умолчанию карточек.
+document.addEventListener('DOMContentLoaded', () => {
+    const er = document.querySelector('input[name="engine"]:checked');
+    if (er) er.closest('.engine-card')?.classList.add('selected');
+    const mr = document.querySelector('input[name="output_mode"]:checked');
+    if (mr) mr.closest('.mode-card')?.classList.add('selected');
+});
+
+// === Upload ===
+async function startProcessing() {
+    if (selectedFiles.length === 0) return;
+    const engine = getSelectedEngine();
+    if (!engine) { alert('Выберите OCR-движок'); return; }
+    processBtn.disabled = true;
+    processBtn.textContent = 'Загрузка...';
+
+    const formData = new FormData();
+    for (let f of selectedFiles) formData.append('files', f);
+    formData.append('engine', engine);
+    formData.append('output_mode', getSelectedMode());
+
+    try {
+        const resp = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            alert(err.detail || 'Ошибка загрузки');
+            return;
+        }
+        const data = await resp.json();
+        if (data.skipped && data.skipped.length) {
+            const names = data.skipped.map(s => `${s.name} (${s.reason})`).join('\n');
+            alert('Некоторые файлы пропущены:\n' + names);
+        }
+        selectedFiles = [];
+        renderFileList();
+        fileInput.value = '';
+        processBtn.textContent = 'Обработать';
+        showProcessingSection();
+    } catch (e) {
+        alert('Ошибка при загрузке: ' + e.message);
+        processBtn.textContent = 'Обработать';
+        updateProcessBtn();
+    }
+}
+
+function showProcessingSection() {
+    document.getElementById('processing-section').classList.remove('hidden');
+    document.getElementById('processing-jobs').innerHTML =
+        '<div class="text-sm text-slate-500">Подключение к очереди...</div>';
+    connectSSE();
+}
+
+let eventSource = null;
+function connectSSE() {
+    if (eventSource) eventSource.close();
+    eventSource = new EventSource('/api/events');
+    eventSource.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        updateProcessingStatus(data);
+    };
+    eventSource.onerror = () => { setTimeout(connectSSE, 5000); };
+}
+
+function updateProcessingStatus(data) {
+    const container = document.getElementById('processing-jobs');
+    const progressBox = document.getElementById('processing-progress');
+    const userJobs = data.user_jobs || [];
+
+    // Прогресс-бар.
+    if (typeof data.progress === 'number' && data.progress > 0 && data.status !== 'idle') {
+        progressBox.classList.remove('hidden');
+        const pct = Math.max(0, Math.min(100, data.progress));
+        document.getElementById('progress-bar').style.width = pct + '%';
+        document.getElementById('progress-percent').textContent = pct + '%';
+        document.getElementById('progress-message').textContent = data.message || 'Обработка...';
+    }
+
+    if (userJobs.length === 0) {
+        container.innerHTML = '';
+        // Если задача только что завершилась — перезагружаем, чтобы обновить список.
+        if (data.status === 'completed' || data.status === 'failed' || data.status === 'idle') {
+            if (eventSource) { eventSource.close(); eventSource = null; }
+            setTimeout(() => location.reload(), 800);
+            return;
+        }
+    }
+
+    container.innerHTML = userJobs.map(j => `
+        <div class="flex items-center gap-3 bg-slate-50 rounded-lg px-4 py-3">
+            <div class="flex-1 min-w-0">
+                <div class="font-medium text-sm text-slate-700 truncate">${j.filename} &middot; ${j.engine}</div>
+                <div class="text-xs text-slate-500">
+                    ${j.status === 'queued' ? 'В очереди' + (j.queue_position ? ' (позиция ' + j.queue_position + ')' : '') : 'Обработка...'}
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button onclick="cancelJob(${j.id})" class="px-2.5 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded transition">Отменить</button>
+                ${j.status === 'processing'
+                    ? '<div class="animate-spin w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full"></div>'
+                    : '<div class="w-5 h-5 border-2 border-slate-300 border-t-slate-400 rounded-full"></div>'}
+            </div>
+        </div>`).join('');
+}
+
+async function deleteJob(jobId) {
+    if (!confirm('Удалить задачу из истории? Файлы будут удалены безвозвратно.')) return;
+    try {
+        const resp = await fetch(`/api/jobs/${jobId}/delete`, { method: 'POST' });
+        if (resp.ok) location.reload(); else alert('Ошибка при удалении');
+    } catch (e) { alert('Ошибка: ' + e.message); }
+}
+async function cancelJob(jobId) {
+    if (!confirm('Отменить обработку?')) return;
+    try {
+        const resp = await fetch(`/api/jobs/${jobId}/cancel`, { method: 'POST' });
+        if (resp.ok) location.reload();
+        else { const err = await resp.json().catch(()=>({})); alert(err.detail || 'Ошибка при отмене'); }
+    } catch (e) { alert('Ошибка: ' + e.message); }
+}
+</script>
+{% endblock %}

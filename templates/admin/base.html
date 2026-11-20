@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 flex">
+    <!-- Сайдбар -->
+    <aside class="w-64 bg-slate-800 min-h-screen flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
+        <div class="p-4 border-b border-slate-700">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3h7l4 4v14a1 1 0 01-1 1H9a1 1 0 01-1-1V4a1 1 0 011-1z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3v5h5M11 12h6M11 15h6M11 18h4"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="text-white font-semibold text-sm">OCR Сервис</div>
+                    <div class="text-slate-400 text-xs">Админ-панель</div>
+                </div>
+            </div>
+        </div>
+        <nav class="p-3 space-y-1">
+            <a href="/admin" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition
+                {% block nav_dashboard %}text-slate-300 hover:bg-slate-700 hover:text-white{% endblock %}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+                Дашборд
+            </a>
+            <a href="/admin/accounts" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition
+                {% block nav_accounts %}text-slate-300 hover:bg-slate-700 hover:text-white{% endblock %}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Аккаунты
+            </a>
+            <a href="/admin/statistics" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition
+                {% block nav_statistics %}text-slate-300 hover:bg-slate-700 hover:text-white{% endblock %}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Статистика
+            </a>
+            <a href="/admin/settings" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition
+                {% block nav_settings %}text-slate-300 hover:bg-slate-700 hover:text-white{% endblock %}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Настройки
+            </a>
+        </nav>
+        <div class="mt-auto w-64 p-3 border-t border-slate-700">
+            <a href="/admin/logout" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white text-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                Выйти
+            </a>
+        </div>
+    </aside>
+
+    <!-- Контент -->
+    <main class="flex-1 p-8 overflow-x-hidden">
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
