@@ -15,6 +15,9 @@ addict==2.4.0
 einops>=0.8.2
 easydict>=1.13
 
+# Код модели импортирует triton; на Windows ставится форк triton-windows
+triton-windows; platform_system == "Windows"
+
 # accelerate обязателен для .cuda()/device_map загрузки
 accelerate>=0.30
 
